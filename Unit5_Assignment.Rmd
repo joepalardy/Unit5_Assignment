@@ -1,0 +1,139 @@
+---
+title: "Unit5_Application"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(1)
+library(gam)
+library(tidyverse)
+
+
+```
+## Question 1 (Adapted from ISLR #6)
+1. In this exercise, you will further analyze the Wage data set considered
+throughout this chapter.
+
+a. Perform polynomial regression to predict wage using age using a polynomial of order 2. 
+b. Use cross-validation to select the optimal degree d for the polynomial. Use a grid between 2 and 10.
+c. Make a plot of the resulting polynomial fit to the data. 
+
+
+### Answer
+
+```{r Q1}
+####You can use the code in reg_splines_notes.R for tidymodels. However, you will need to adapt it to poly regs instead
+###of spline regs. 
+library(ISLR)
+###do not do an initial split, we won't be using a true test set for this problem
+folds <- vfold_cv(Wage, v = 10)
+
+polyreg_recipe <- 
+  recipe(formula = wage ~ age, data = Wage) %>% 
+  step_poly(age, degree = tune("df_val"))
+
+#####
+
+
+
+#######Since you aren't using an initial split, use the following to create to do the fit to the full data and save predicted values
+final_polyreg %>% augment() 
+  fit(Wage) %>% 
+  predict(Wage) %>% 
+  bind_cols(Wage) -> wage_fit
+
+
+
+```
+
+
+
+*************************************
+
+
+## Question 2 (Adapted from ISLR #9)
+This question uses the variables dis (the weighted mean of distances
+to five Boston employment centers) and nox (nitrogen oxides concentration in parts per 10 million) from the Boston data. We will treat
+dis as the predictor and nox as the response.
+
+a. Use a natural spline regression to predict nox using dis using a spline with 2 knots. 
+b. Use cross-validation to select the optimal degrees of freedom for the natural. Use a grid between 1 and 10.
+c. Make a plot of the resulting natural spline to the data. 
+
+
+### Answer
+
+```{r Q2}
+boston_data <- MASS::Boston
+####You can use the code in reg_splines_notes.R for tidymodels. 
+###do not do an initial split, we won't be using a true test set for this problem
+
+
+
+
+```
+
+
+
+*************************************
+
+## Question 3 (Adapted from ISLR #10)
+
+This question relates to the College data set.
+
+a. Create a new variable called ActRate, which equals Accept/Apps.
+b. Fit a smoothing spline with ActRate as a predictor and Outstate as the response with an effective df =5.
+c. Refit the previous model, but use CV to find an optimal level of df.
+d. Make a plot of the resulting smoothing spline to the data. 
+
+### Answer
+
+```{r Q3}
+glimpse(College)
+####
+####tidymodels will not work with smoothing splines. See smooth_splines_notes for how to do this.
+##### We won't be using a true test set in this case. You do not have to split the data.
+
+
+
+```
+
+
+## Question 4 (Adapted from ISLR #10)
+
+This question relates to the College data set and the ActRate you created in Question 3.
+
+b. Fit a GAM using a smoothing spline for ActRate and a natural spline for Grad.Rate using 3 for the paramters in both.
+c. Refit several (4) other GAMs for Outstate, and calculate the MSE for each one.
+d. Make a plot of the resulting GAMS to the data. 
+
+### Answer
+
+```{r Q4}
+####
+####tidymodels will not work with many GAMs.
+
+###simple augment
+gam_augment <- function(gam_mod, new_data)
+{
+  tibble(.fitted = predict(gam_mod, newdata = new_data)) %>% bind_cols(new_data)
+}
+
+#####add additional models here
+gam_models <- tibble(models = c(
+  Outstate ~ ActRate + Grad.Rate
+))
+
+gam_models %>%
+  mutate(mods = map(models, ~gam::gam(.x, data = College)),
+         gam_fitted = map(mods, ~gam_augment(.x, College)),
+         model_text = map_chr(models, ~paste(.x[2],.x[3],sep='~'))) -> fitted_gams
+
+
+####use unnest and group by model_text and use summarise to calculate the MSE.
+
+
+#####in ggplot, use color = model_text in aes and the unnested data
+
+```
