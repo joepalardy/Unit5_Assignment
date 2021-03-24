@@ -8,7 +8,8 @@ knitr::opts_chunk$set(echo = TRUE)
 set.seed(1)
 library(gam)
 library(tidyverse)
-
+library(tidymodels)
+library(knitr)
 
 ```
 ## Question 1 (Adapted from ISLR #6)
@@ -29,16 +30,17 @@ library(ISLR)
 ###do not do an initial split, we won't be using a true test set for this problem
 folds <- vfold_cv(Wage, v = 10)
 
+##b.
 polyreg_recipe <- 
   recipe(formula = wage ~ age, data = Wage) %>% 
   step_poly(age, degree = tune("df_val"))
 
 #####
+####
 
 
-
-#######Since you aren't using an initial split, use the following to create to do the fit to the full data and save predicted values
-final_polyreg %>% augment() 
+#######Since you aren't using an initial split, use the following to fit to the full data and save predicted values.
+final_polyreg %>% 
   fit(Wage) %>% 
   predict(Wage) %>% 
   bind_cols(Wage) -> wage_fit
@@ -54,8 +56,7 @@ final_polyreg %>% augment()
 
 ## Question 2 (Adapted from ISLR #9)
 This question uses the variables dis (the weighted mean of distances
-to five Boston employment centers) and nox (nitrogen oxides concentration in parts per 10 million) from the Boston data. We will treat
-dis as the predictor and nox as the response.
+to five Boston employment centers) and nox (nitrogen oxides concentration in parts per 10 million) from the Boston data. We will treat dis as the predictor and nox as the response.
 
 a. Use a natural spline regression to predict nox using dis using a spline with 2 knots. 
 b. Use cross-validation to select the optimal degrees of freedom for the natural. Use a grid between 1 and 10.
@@ -131,7 +132,7 @@ gam_models %>%
          model_text = map_chr(models, ~paste(.x[2],.x[3],sep='~'))) -> fitted_gams
 
 
-####use unnest and group by model_text and use summarise to calculate the MSE.
+####use unnest and group by model_text and use summarize to calculate the MSE.
 
 
 #####in ggplot, use color = model_text in aes and the unnested data
